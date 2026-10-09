@@ -4,3 +4,5 @@ runs/
 jobs/
 .DS_Store
 nohup.out
+.agents/
+skills-lock.json
