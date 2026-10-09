@@ -3,6 +3,7 @@
 <div class="nav"><a href="/">Leaderboard</a><a href="/intelligence.html">Intelligence</a><a href="/tasks.html">Tasks</a></div>
 <h1 id="title" style="font-size:22px">Run</h1>
 <p class="sub" id="meta">Loading…</p>
+<h3>Settings</h3><div class="runs" id="settings"></div>
 <h3>Prompt</h3><pre id="prompt"></pre>
 <h3>Response</h3><pre id="resp"></pre>
 <div class="scorebar">
@@ -23,7 +24,19 @@ async function init(){
   catch(e){document.getElementById('meta').textContent='Could not load run.';return;}
   if(r.detail){document.getElementById('meta').textContent='Run not found.';return;}
   document.getElementById('title').textContent=r.task_id+' · '+r.model;
-  document.getElementById('meta').innerHTML=`${r.auto?.pass===true?'<span class="pill pass">auto pass</span>':r.auto?.pass===false?'<span class="pill fail">auto fail</span>':'<span class="pill warn">needs score</span>'} <span class="muted">${r.duration_ms}ms · tokens ${esc(r.prompt_tokens??'—')}/${esc(r.completion_tokens??'—')} · model <code>${esc(r.effective_config?.model||r.model)}</code>${r.effective_config?.override?` · override ${esc(JSON.stringify(r.effective_config.override))}`:' · server defaults'}</span>`;
+  document.getElementById('meta').innerHTML=`${r.auto?.pass===true?'<span class="pill pass">auto pass</span>':r.auto?.pass===false?'<span class="pill fail">auto fail</span>':'<span class="pill warn">needs score</span>'} <span class="muted">${r.duration_ms}ms · tokens ${esc(r.prompt_tokens??'—')}/${esc(r.completion_tokens??'—')}</span>`;
+  const c=r.effective_config||{};
+  const row=(k,v)=>`<div class="runrow"><span class="muted" style="min-width:130px">${k}</span><span class="model">${esc(v??'—')}</span></div>`;
+  document.getElementById('settings').innerHTML=
+    row('model',c.model||r.model)+
+    row('temperature',c.temperature??'server default')+
+    row('max tokens',c.max_tokens??'server default')+
+    row('system prompt',c.system||'—')+
+    row('quantization',c.quantization??'unknown')+
+    row('model arch',c.model_arch??'unknown')+
+    row('context length',c.context_length??'unknown')+
+    row('kv cache quant','not exposed by LM Studio')+
+    (c.model_mismatch?`<div class="runrow"><span class="pill fail">routed to a different model</span></div>`:'');
   document.getElementById('prompt').textContent=r.prompt;
   document.getElementById('resp').textContent=r.response||('(error: '+(r.error||'?')+')');
   if(r.human?.score)document.getElementById('score').value=r.human.score;

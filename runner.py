@@ -78,6 +78,42 @@ def _is_infra_error(exc):
     return False
 
 
+def _run_settings(task, model, raw_model, override, retried=False, mismatch=False):
+    try:
+        info = providers.model_info(raw_model)
+    except Exception:
+        info = {}
+    ov = override or {}
+    return {
+        "model": raw_model,
+        "requested_model": model,
+        "override": override,
+        "temperature": ov.get("temperature"),  # None = LM Studio server default
+        "max_tokens": ov.get("max_tokens"),
+        "system": task.get("system") or "",
+        "quantization": info.get("quantization"),
+        "model_arch": info.get("arch"),
+        "context_length": info.get("context_length"),
+        "kv_cache_quant": None,  # not exposed by any LM Studio API
+        **({"model_mismatch": True} if mismatch else {}),
+        **({"retried": True} if retried else {}),
+    }
+
+
+def _error_run(task_id, task, model, override, started, dur_ms, exc, retried=False):
+    return {
+        "task_id": task_id, "model": model,
+        "prompt": task["prompt"], "response": "",
+        "reasoning": "",
+        "duration_ms": dur_ms,
+        "effective_config": _run_settings(task, model, model, override, retried=retried),
+        "started_at": started,
+        "auto": {"pass": None, "detail": f"infra-error: {exc}"},
+        "human": {"score": None, "verdict": None, "note": ""},
+        "error": str(exc),
+    }
+
+
 def _finish_run(task_id, task, model, text, reasoning, usage, raw_model, override, started, dur_ms, retried=False):
     # Model-mismatch guard: LM Studio may route chat for an embedding id to a loaded LLM.
     mismatch = bool(raw_model and raw_model != model)
@@ -87,8 +123,7 @@ def _finish_run(task_id, task, model, text, reasoning, usage, raw_model, overrid
             "prompt": task["prompt"], "response": "",
             "reasoning": "",
             "duration_ms": dur_ms,
-            "effective_config": {"model": raw_model, "requested_model": model, "override": override,
-                                 "model_mismatch": True, **({"retried": True} if retried else {})},
+            "effective_config": _run_settings(task, model, raw_model, override, retried=retried, mismatch=True),
             "started_at": started,
             "auto": {"pass": None, "detail": "skipped: routed to different model"},
             "human": {"score": None, "verdict": None, "note": ""},
@@ -102,8 +137,7 @@ def _finish_run(task_id, task, model, text, reasoning, usage, raw_model, overrid
         "duration_ms": dur_ms,
         "prompt_tokens": usage.get("prompt_tokens"),
         "completion_tokens": usage.get("completion_tokens"),
-        "effective_config": {"model": raw_model, "override": override,
-                             **({"retried": True} if retried else {})},
+        "effective_config": _run_settings(task, model, raw_model, override, retried=retried),
         "started_at": started,
         "auto": auto,
         "human": {"score": None, "verdict": None, "note": ""},
@@ -122,17 +156,7 @@ def run_one_model(task_id, task, model, messages, override=None):
     except Exception as e:
         if not _is_infra_error(e):
             dur = int((time.perf_counter() - t0) * 1000)
-            return {
-                "task_id": task_id, "model": model,
-                "prompt": task["prompt"], "response": "",
-                "reasoning": "",
-                "duration_ms": dur,
-                "effective_config": {"model": model, "override": override},
-                "started_at": started,
-                "auto": {"pass": None, "detail": f"infra-error: {e}"},
-                "human": {"score": None, "verdict": None, "note": ""},
-                "error": str(e),
-            }
+            return _error_run(task_id, task, model, override, started, dur, e)
         time.sleep(1.5)
     # retry once, timer restarts so duration reflects the retry only
     t1 = time.perf_counter()
@@ -143,17 +167,7 @@ def run_one_model(task_id, task, model, messages, override=None):
                            out.get("usage", {}), out.get("raw_model", model), override, started, dur, retried=True)
     except Exception as e2:
         dur = int((time.perf_counter() - t1) * 1000)
-        return {
-            "task_id": task_id, "model": model,
-            "prompt": task["prompt"], "response": "",
-            "reasoning": "",
-            "duration_ms": dur,
-            "effective_config": {"model": model, "override": override, "retried": True},
-            "started_at": started,
-            "auto": {"pass": None, "detail": f"infra-error: {e2}"},
-            "human": {"score": None, "verdict": None, "note": ""},
-            "error": str(e2),
-        }
+        return _error_run(task_id, task, model, override, started, dur, e2, retried=True)
 
 
 def run_one_model_stream(task_id, task, model, messages, override=None, on_token=None):
@@ -169,17 +183,7 @@ def run_one_model_stream(task_id, task, model, messages, override=None, on_token
         raise
     except Exception as e:
         dur = int((time.perf_counter() - t0) * 1000)
-        return {
-            "task_id": task_id, "model": model,
-            "prompt": task["prompt"], "response": "",
-            "reasoning": "",
-            "duration_ms": dur,
-            "effective_config": {"model": model, "override": override},
-            "started_at": started,
-            "auto": {"pass": None, "detail": f"infra-error: {e}"},
-            "human": {"score": None, "verdict": None, "note": ""},
-            "error": str(e),
-        }
+        return _error_run(task_id, task, model, override, started, dur, e)
 
 
 def save_run(run, task_id, model):

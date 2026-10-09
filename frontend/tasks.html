@@ -37,7 +37,7 @@ async function load(){let t=[];try{t=await (await fetch('/api/tasks')).json();}c
   $('task').innerHTML=t.map(x=>`<option>${esc(x.id)}</option>`).join('');updSize();
   try{const m=await (await fetch('/api/models')).json();
     $('modellist').innerHTML=(m.all||[]).map(x=>x.loaded
-      ?`<label style="flex-direction:row;align-items:center;gap:6px;display:flex;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer"><input type="checkbox" data-model="${esc(x.id)}" checked style="width:auto"><span class="model">${esc(x.id)}</span></label>`
+      ?`<label style="flex-direction:row;align-items:center;gap:6px;display:flex;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer"><input type="checkbox" data-model="${esc(x.id)}" checked style="width:auto"><span class="model">${esc(x.id)}</span>${x.quantization?`<span class="pill">${esc(x.quantization)}</span>`:''}</label>`
       :`<span class="pill" title="not loaded in LM Studio">${esc(x.id)} · offline</span>`).join('')||'<span class="muted">none</span>';
   }catch(e){$('modellist').innerHTML='<span class="muted">LM Studio unreachable</span>';}
   const last=localStorage.getItem(LSKEY);

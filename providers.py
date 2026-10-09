@@ -64,12 +64,36 @@ def list_all():
             mid = m.get("id") or m.get("key")
             if not mid or not _is_chat_entry(m):
                 continue
-            out.append({"id": mid, "loaded": _is_loaded_entry(m)})
+            out.append({
+                "id": mid,
+                "loaded": _is_loaded_entry(m),
+                "quantization": m.get("quantization"),
+                "arch": m.get("arch"),
+                "context_length": m.get("max_context_length"),
+            })
         return out
     r = requests.get(f"{BASE}/models", timeout=10)
     r.raise_for_status()
-    return [{"id": m.get("id"), "loaded": True}
+    return [{"id": m.get("id"), "loaded": True,
+             "quantization": None, "arch": None, "context_length": None}
             for m in r.json().get("data", []) if m.get("id") and not EMBED_PAT.search(m.get("id"))]
+
+
+def model_info(model_id):
+    """Snapshot of a model's static settings (quant, arch, ctx). {} on failure.
+
+    Note: LM Studio does not expose runtime settings like effective temperature
+    or KV-cache quantization over any API, so those stay null unless you set
+    them as an explicit override for the run.
+    """
+    for m in _native_models():
+        if (m.get("id") or m.get("key")) == model_id:
+            return {
+                "quantization": m.get("quantization"),
+                "arch": m.get("arch"),
+                "context_length": m.get("max_context_length"),
+            }
+    return {}
 
 
 def list_models(chat_only=True):
