@@ -51,6 +51,8 @@ tbody tr.leader td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 .runrow.bad{border-left-color:var(--red)}
 .runrow.todo{border-left-color:var(--amber)}
 .rank{font-family:var(--mono);color:var(--muted);font-size:12px;min-width:28px}
+.vcheck{display:flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13.5px}
+.vcheck input{width:auto}
 .cathead{display:flex;align-items:baseline;gap:10px;margin:18px 2px 8px}
 .cathead h3{margin:0;font-size:15px}
 .diff{font-size:11.5px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);font-family:var(--mono)}

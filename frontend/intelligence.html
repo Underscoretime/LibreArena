@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015">
-<title>Intelligence — LibreArena</title><link rel="stylesheet" href="/style.css?v=6"></head><body>
+<title>Intelligence — LibreArena</title><link rel="stylesheet" href="/style.css?v=7"></head><body>
 <a class="skip" href="#main">Skip to content</a>
 <main id="main">
-<div class="nav"><a href="/">Leaderboard</a><a href="/intelligence.html" aria-current="page">Intelligence</a><a href="/tasks.html">Tasks</a></div>
+<div id="hdr"></div>
 <div class="top"><h1>Intelligence</h1></div>
 <p class="sub" id="sub">Single score per model from real benchmarks only · coding + instruction, fun/misc excluded</p>
 <div class="filters">
@@ -48,8 +48,9 @@ async function load(){
   history.replaceState(null,'',`?params=${pb}&arch=${ar}&vendor=${[...SELV].join(',')}&orient=${ORIENT}`);
   $('oh').setAttribute('aria-pressed',ORIENT==='h');$('ov').setAttribute('aria-pressed',ORIENT==='v');
   const vendors=[...new Set(runs.map(r=>(REG[r.model]||guessMeta(r.model)).vendor))].sort();
-  $('vendors').innerHTML=vendors.map(v=>`<button class="ghost" data-v="${esc(v)}" style="${SELV.size&&!SELV.has(v)?'opacity:.45':''};padding:4px 8px;display:flex;gap:6px;align-items:center">${badge(v)}${esc(v)}</button>`).join('');
-  document.querySelectorAll('#vendors button').forEach(b=>b.onclick=()=>{const v=b.dataset.v;SELV.has(v)?SELV.delete(v):SELV.add(v);load();});
+  if(!q.has('vendor'))SELV=new Set(vendors);
+  $('vendors').innerHTML=vendors.map(v=>`<label class="vcheck"><input type="checkbox" data-v="${esc(v)}"${SELV.has(v)?' checked':''}>${badge(v)}${esc(v)}</label>`).join('');
+  document.querySelectorAll('#vendors input').forEach(c=>c.onchange=()=>{const v=c.dataset.v;c.checked?SELV.add(v):SELV.delete(v);load();});
   const by={};runs.forEach(r=>{(by[r.model]=by[r.model]||[]).push(r);});
   let rows=Object.entries(by).map(([m,rs])=>{
     const meta=REG[m]||{...guessMeta(m),id:m};
@@ -80,5 +81,6 @@ function renderV(rows,N){return `<div class="vchart">`+rows.map(r=>{const prov=r
     const pct=N?Math.round(100*r.score/N):0,src=sourceOf(r),low=pct<22;
     return `<div class="vcol${prov?' prov':''}" data-source="${src}" style="--vc:${vcolor(r.meta.vendor)}" title="${esc(r.m)} · auto ${r.auto==null?'—':Math.round(r.auto*100)+'%'} · human ${r.human==null?'—':r.human.toFixed(1)} · ${r.covered}/${N}">${low?`<span class="vscore low">${prov?'~':''}${r.score.toFixed(1)}</span>`:''}<div class="vbar"><div class="vfill" style="height:${pct}%"></div>${low?'':`<span class="vscore">${prov?'~':''}${r.score.toFixed(1)}</span>`}</div><div class="vmeta">${badge(r.meta.vendor)}<div class="vlabel"><span>${esc(r.m)}</span></div></div></div>`;}).join('')+`</div>`+LEGEND;}
 for(const id of ['fparams','farch'])$(id).addEventListener('change',load);
+mountHeader('intel');
 load();
 </script></main></body></html>

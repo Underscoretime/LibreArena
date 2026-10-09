@@ -12,3 +12,14 @@ function guessVendor(id) { const s = String(id).toLowerCase();
   if (/llama|meta/.test(s)) return 'Meta'; if (/mistral|mixtral/.test(s)) return 'Mistral';
   if (/phi/.test(s)) return 'Microsoft'; if (/deepseek/.test(s)) return 'DeepSeek';
   if (/lfm|liquid/.test(s)) return 'LFM'; return 'Unknown'; }
+async function mountHeader(active) {
+  const links = [['/', 'Leaderboard', 'board'], ['/intelligence.html', 'Intelligence', 'intel'], ['/tasks.html', 'Tasks', 'tasks']];
+  document.getElementById('hdr').innerHTML =
+    `<div class="top"><h1>Libre<span class="arena">Arena</span></h1></div>` +
+    `<p class="sub">Local-model fight lab · LM Studio: <code id="models">…</code></p>` +
+    `<div class="nav">` + links.map(([h, t, k]) => `<a href="${h}"${k === active ? ' aria-current="page"' : ''}>${t}</a>`).join('') + `</div>`;
+  try {
+    const m = await (await fetch('/api/models')).json();
+    document.getElementById('models').textContent = (m.models || []).join(', ') || 'none loaded — load one in LM Studio';
+  } catch (e) { document.getElementById('models').textContent = 'offline'; }
+}

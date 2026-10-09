@@ -1,11 +1,9 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015">
-<title>LibreArena</title><link rel="stylesheet" href="/style.css?v=6"></head><body>
+<title>LibreArena</title><link rel="stylesheet" href="/style.css?v=7"></head><body>
 <a class="skip" href="#main">Skip to content</a>
 <main id="main">
-<div class="top"><h1>Libre<span class="arena">Arena</span></h1></div>
-<p class="sub">Local-model fight lab · LM Studio: <code id="models">…</code></p>
-<div class="nav"><a href="/" aria-current="page">Leaderboard</a><a href="/intelligence.html">Intelligence</a><a href="/tasks.html">Tasks</a></div>
+<div id="hdr"></div>
 <div class="filters">
 <label>Category<select id="fcat"><option value="">All</option><option>coding</option><option>instruction</option><option>fun</option></select></label>
 <label>Tag<input id="ftag" name="tag" autocomplete="off" placeholder="e.g. misc…"></label>
@@ -32,13 +30,12 @@ function pill(r){
 async function load(){
   const tb=document.getElementById('tb'),box=document.getElementById('runs'),st=document.getElementById('status');
   tb.innerHTML='<tr><td colspan="6" class="muted">Loading…</td></tr>';box.innerHTML='';
-  let tasks,runs,mods={models:[]};
+  let tasks,runs;
   try{
     [tasks,runs]=await Promise.all([(await fetch('/api/tasks')).json(),(await fetch('/api/runs')).json()]);
-    try{mods=await (await fetch('/api/models')).json();}catch(e){}
   }catch(e){st.textContent='Could not load API. Is the server running?';return;}
   TASKS=Object.fromEntries(tasks.map(t=>[t.id,t]));
-  document.getElementById('models').textContent=(mods.models||[]).join(', ')||'none loaded — load one in LM Studio';
+  mountHeader('board');
   const cat=fcat.value,tag=ftag.value.trim().toLowerCase(),vd=fverdict.value,sort=fsort.value;
   history.replaceState(null,'',`?cat=${encodeURIComponent(cat)}&tag=${encodeURIComponent(tag)}&verdict=${vd}&sort=${sort}`);
   let f=runs.filter(r=>{const t=TASKS[r.task_id]||{};if(cat&&(t.category||'')!==cat)return false;
@@ -60,5 +57,6 @@ async function load(){
 }
 for(const id of ['fcat','fverdict','fsort'])document.getElementById(id).addEventListener('change',load);
 let deb;document.getElementById('ftag').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(load,250);});
+mountHeader('board');
 load();
 </script></main></body></html>

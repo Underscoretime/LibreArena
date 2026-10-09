@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015"><title>Tasks — LibreArena</title><link rel="stylesheet" href="/style.css?v=6"></head><body>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015"><title>Tasks — LibreArena</title><link rel="stylesheet" href="/style.css?v=7"></head><body>
 <a class="skip" href="#main">Skip to content</a>
 <main id="main">
-<div class="nav"><a href="/">Leaderboard</a><a href="/intelligence.html">Intelligence</a><a href="/tasks.html" aria-current="page">Tasks</a></div>
+<div id="hdr"></div>
 <h1 style="font-size:24px">Tasks</h1><div id="list"></div>
 <h2>New task</h2>
 <div class="formgrid">
@@ -107,5 +107,6 @@ async function cancelJob(){
   if(!currentJob)return;
   await fetch('/api/jobs/'+encodeURIComponent(currentJob)+'/cancel',{method:'POST'});
 }
+mountHeader('tasks');
 load();
 </script></main></body></html>
