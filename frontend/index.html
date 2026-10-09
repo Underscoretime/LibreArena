@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015">
-<title>LibreArena</title><link rel="stylesheet" href="/style.css?v=5"></head><body>
+<title>LibreArena</title><link rel="stylesheet" href="/style.css?v=6"></head><body>
 <a class="skip" href="#main">Skip to content</a>
 <main id="main">
 <div class="top"><h1>Libre<span class="arena">Arena</span></h1></div>
@@ -53,9 +53,10 @@ async function load(){
     return{m,n:rs.length,ap,at,auto:at?Math.round(100*ap/at):null,human:hs.length?(hs.reduce((a,b)=>a+b,0)/hs.length).toFixed(2):null,
       hstr:hst?`${hsp}/${hst}`:null,ms:Math.round(ts.reduce((a,b)=>a+b,0)/Math.max(1,ts.length)),tok:tk.length?Math.round(tk.reduce((a,b)=>a+b,0)/tk.length):null};});
   const key={human:r=>-(+r.human||-1),auto:r=>-(r.auto??-1),time:r=>r.ms,runs:r=>-r.n}[sort];rows.sort((a,b)=>key(a)-key(b));
-  tb.innerHTML=rows.length?rows.map((r,i)=>`<tr class="${i===0&&rows.length>1?'leader':''}"><td class="model">${esc(r.m)}</td><td class="num">${r.n}</td><td class="num">${r.auto==null?'—':r.auto+'% <span class="muted">'+r.ap+'/'+r.at+'</span>'}</td><td class="num">${r.human??'—'}${r.hstr?` <span class="muted">${r.hstr}</span>`:''}</td><td class="num">${r.ms}ms</td><td class="num">${r.tok??'—'}</td></tr>`).join(''):'<tr><td colspan="6" class="muted">No runs match these filters.</td></tr>';
+  tb.innerHTML=rows.length?rows.map((r,i)=>`<tr class="${i===0&&rows.length>1?'leader':''}"><td><span style="display:flex;gap:8px;align-items:center"><span class="rank">#${i+1}</span>${badge(guessVendor(r.m))}<span class="model">${esc(r.m)}</span></span></td><td class="num">${r.n}</td><td class="num">${r.auto==null?'—':r.auto+'% <span class="muted">'+r.ap+'/'+r.at+'</span>'}</td><td class="num">${r.human??'—'}${r.hstr?` <span class="muted">${r.hstr}</span>`:''}</td><td class="num">${r.ms}ms</td><td class="num">${r.tok??'—'}</td></tr>`).join(''):'<tr><td colspan="6" class="muted">No runs match these filters.</td></tr>';
   const shown=f.slice(0,100);
-  box.innerHTML=shown.length?shown.map(r=>{const t=TASKS[r.task_id]||{};return`<div class="runrow">${pill(r)}<a class="id" href="/review.html?id=${encodeURIComponent(r.id)}">${esc(r.id)}</a><span class="model">${esc(r.model)}</span><span class="muted">${esc(t.category||'?')} · ${esc((t.tags||[]).join(','))} · ${r.duration_ms}ms</span></div>`;}).join('')+(f.length>100?`<div class="runrow muted">+ ${f.length-100} more — refine filters</div>`:''):'<div class="runrow muted">Nothing here yet — run a task.</div>';
+  const edge=r=>r.human?.verdict==='pass'||r.auto?.pass===true?'good':(r.human?.verdict==='fail'||r.auto?.pass===false?'bad':'todo');
+  box.innerHTML=shown.length?shown.map(r=>{const t=TASKS[r.task_id]||{};return`<div class="runrow ${edge(r)}">${pill(r)}<a class="id" href="/review.html?id=${encodeURIComponent(r.id)}">${esc(r.id)}</a><span class="model">${esc(r.model)}</span><span class="muted">${esc(t.category||'?')} · ${esc((t.tags||[]).join(','))} · ${r.duration_ms}ms</span></div>`;}).join('')+(f.length>100?`<div class="runrow muted">+ ${f.length-100} more — refine filters</div>`:''):'<div class="runrow muted">Nothing here yet — run a task.</div>';
 }
 for(const id of ['fcat','fverdict','fsort'])document.getElementById(id).addEventListener('change',load);
 let deb;document.getElementById('ftag').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(load,250);});

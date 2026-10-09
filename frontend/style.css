@@ -46,7 +46,17 @@ tbody tr.leader td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 .pill.human{color:var(--violet);border-color:color-mix(in srgb,var(--violet) 55%,var(--line))}
 .pill.warn{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 55%,var(--line))}
 .runs{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
-.runrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 12px;border-bottom:1px solid var(--line);font-size:13.5px}
+.runrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 12px;border-bottom:1px solid var(--line);font-size:13.5px;border-left:3px solid transparent}
+.runrow.good{border-left-color:var(--mint)}
+.runrow.bad{border-left-color:var(--red)}
+.runrow.todo{border-left-color:var(--amber)}
+.rank{font-family:var(--mono);color:var(--muted);font-size:12px;min-width:28px}
+.cathead{display:flex;align-items:baseline;gap:10px;margin:18px 2px 8px}
+.cathead h3{margin:0;font-size:15px}
+.diff{font-size:11.5px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);font-family:var(--mono)}
+.diff.easy{color:var(--mint)} .diff.medium{color:var(--amber)} .diff.hard{color:var(--red)}
+dl.runs{padding:4px 0}
+dl.runs dd{margin:0}
 .runrow:last-child{border-bottom:0}
 .runrow .id{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
 pre{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;white-space:pre-wrap;word-break:break-word;max-height:40vh;overflow:auto;font-size:13.5px}

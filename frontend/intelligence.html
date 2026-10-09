@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015">
-<title>Intelligence — LibreArena</title><link rel="stylesheet" href="/style.css?v=5"></head><body>
+<title>Intelligence — LibreArena</title><link rel="stylesheet" href="/style.css?v=6"></head><body>
 <a class="skip" href="#main">Skip to content</a>
 <main id="main">
 <div class="nav"><a href="/">Leaderboard</a><a href="/intelligence.html" aria-current="page">Intelligence</a><a href="/tasks.html">Tasks</a></div>
@@ -23,10 +23,6 @@
 <script src="/shared.js"></script>
 <script>
 const EMBED_PAT=/embed|e5-|bge-|gte-|nomic-embed|sentence-|instructor|retrieval|rerank|text-embedding/i;
-const VENDOR_COLORS={Qwen:'#6157ff',Google:'#34a853',LFM:'#111111',Meta:'#0082fb',Mistral:'#ff7000',Microsoft:'#00a4ef',DeepSeek:'#4d6bfe',Unknown:'#5b6472'};
-const VENDOR_LETTER={Qwen:'Q',Google:'G',LFM:'L',Meta:'M',Mistral:'M',Microsoft:'P',DeepSeek:'D',Unknown:'?'};
-const vcolor=v=>VENDOR_COLORS[v]||`hsl(${[...(v||'?')].reduce((a,c)=>a+c.charCodeAt(0),0)%360} 45% 45%)`;
-const badge=v=>{const l=VENDOR_LETTER[v]||(v||'?')[0].toUpperCase();const extra=v==='LFM'?'border:1px solid #e9e6da;':'';return `<span class="vbadge" title="${esc(v)}" style="background:${vcolor(v)};${extra}">${esc(l)}</span>`;};
 const q=new URLSearchParams(location.search);
 let ORIENT=q.get('orient')||'h';
 for(const [k,id] of [['params','fparams'],['arch','farch']]){if(q.get(k))$(id).value=q.get(k);}
@@ -35,8 +31,7 @@ function isEligible(t){if(t.intelligence?.eligible!=null)return !!t.intelligence
   if((t.tags||[]).some(x=>['fun','misc'].includes(String(x).toLowerCase())))return false;
   return ['coding','instruction'].includes(t.category);}
 function guessMeta(id){const s=String(id).toLowerCase();
-  const vendor=/qwen/.test(s)?'Qwen':/gemma|google/.test(s)?'Google':/llama|meta/.test(s)?'Meta':/mistral|mixtral/.test(s)?'Mistral':/phi/.test(s)?'Microsoft':/deepseek/.test(s)?'DeepSeek':'Unknown';
-  const m=s.match(/(\d+(?:\.\d+)?)\s?b/);return{vendor,params_b:m?+m[1]:null,arch:/moe|e\d+b|a\d+b|mixtral/.test(s)?'moe':'unknown'};}
+  const m=s.match(/(\d+(?:\.\d+)?)\s?b/);return{vendor:guessVendor(id),params_b:m?+m[1]:null,arch:/moe|e\d+b|a\d+b|mixtral/.test(s)?'moe':'unknown'};}
 const bucket=p=>p==null?'unk':p<=4?'s':p<=9?'m':p<=15?'l':p<=35?'xl':'xxl';
 function setOrient(o){ORIENT=o;load();}
 function sourceOf(r){const hasA=r.auto!=null,hasH=r.human!=null;return hasA&&hasH?'mixed':hasA?'auto':'human';}

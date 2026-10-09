@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015"><title>Tasks — LibreArena</title><link rel="stylesheet" href="/style.css?v=5"></head><body>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015"><title>Tasks — LibreArena</title><link rel="stylesheet" href="/style.css?v=6"></head><body>
 <a class="skip" href="#main">Skip to content</a>
 <main id="main">
 <div class="nav"><a href="/">Leaderboard</a><a href="/intelligence.html">Intelligence</a><a href="/tasks.html" aria-current="page">Tasks</a></div>
-<h1 style="font-size:24px">Tasks</h1><div class="runs" id="list"></div>
+<h1 style="font-size:24px">Tasks</h1><div id="list"></div>
 <h2>New task</h2>
 <div class="formgrid">
 <label>Name<input id="name" name="taskname" autocomplete="off" placeholder="Ping test…" required></label>
@@ -34,7 +34,14 @@ let pollTimer=null, currentJob=null, TASKS=[];
 const est=t=>Math.max(1,Math.round(((t.system||'').length+(t.prompt||'').length)/4));
 async function load(){let t=[];try{t=await (await fetch('/api/tasks')).json();}catch(e){$('list').innerHTML='<div class="runrow">Could not load tasks.</div>';return;}
   TASKS=t;
-  $('list').innerHTML=t.length?t.map(x=>`<div class="runrow"><span class="pill">${esc(x.category||'?')}</span><b>${esc(x.id)}</b>${x.intelligence?.eligible===false?'<span class="pill">fun</span>':''}<span class="muted">${esc((x.tags||[]).join(','))} · ~${est(x)} tok · ${esc(x.prompt.slice(0,90))}</span></div>`).join(''):'<div class="runrow muted">No tasks yet.</div>';
+  const diff=t=>{const d=(t.tags||[]).find(x=>['easy','medium','hard'].includes(String(x).toLowerCase()));return d?`<span class="diff ${d.toLowerCase()}">${esc(d)}</span>`:'';};
+  const cats=['coding','instruction','fun'];
+  const seenCats=new Set();
+  let html=cats.map(c=>{const ts=t.filter(x=>(x.category||'fun')===c);if(!ts.length)return '';seenCats.add(c);
+    return `<div class="cathead"><h3>${c}</h3><span class="muted">${ts.length}</span></div><div class="runs" style="margin-top:0">`+ts.map(x=>`<div class="runrow"><b>${esc(x.id)}</b>${diff(x)}${x.intelligence?.eligible===false?'<span class="pill">fun</span>':''}<span class="muted">${esc((x.tags||[]).join(','))} · ~${est(x)} tok · ${esc(x.prompt.slice(0,90))}</span></div>`).join('')+`</div>`;}).join('');
+  const rest=t.filter(x=>!seenCats.has(x.category||'fun'));
+  if(rest.length)html+=`<div class="cathead"><h3>other</h3><span class="muted">${rest.length}</span></div><div class="runs" style="margin-top:0">`+rest.map(x=>`<div class="runrow"><b>${esc(x.id)}</b><span class="muted">${esc(x.prompt.slice(0,90))}</span></div>`).join('')+`</div>`;
+  $('list').innerHTML=html||'<div class="runrow muted">No tasks yet.</div>';
   $('task').innerHTML=t.map(x=>`<option>${esc(x.id)}</option>`).join('');updSize();
   try{const m=await (await fetch('/api/models')).json();
     $('modellist').innerHTML=(m.all||[]).map(x=>x.loaded
