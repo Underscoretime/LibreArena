@@ -298,15 +298,17 @@ def api_run(body: dict, sync: int = 0):
         except RuntimeError as e:
             raise HTTPException(502, str(e))
     try:
+        explicit = body.get("models") is not None
         models = body.get("models") or providers.list_models()
     except requests.RequestException as e:
         raise HTTPException(502, f"LM Studio unreachable: {e}")
     if not models:
         raise HTTPException(502, "No loaded chat models in LM Studio — load one first.")
-    # skip (task, model) pairs already tested, unless forced
+    # skip (task, model) pairs already tested — but only for auto-included
+    # models. Explicitly picked models always run: picking is intent.
     skipped = []
     pairs = []
-    if not body.get("force"):
+    if not body.get("force") and not explicit:
         for tid in task_ids:
             tested = _tested_pairs(tid)
             for m in models:

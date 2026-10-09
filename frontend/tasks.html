@@ -22,7 +22,7 @@
 <div><div class="muted" style="font-size:13px;margin-bottom:4px">Models (only loaded ones run)</div><div id="modellist" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
 <label>Override temp (optional)<input id="temp" name="temp" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="server default…"></label>
 <label>Max tokens cap (optional, protects small context windows)<input id="maxtok" name="maxtok" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="server default…"></label>
-<label style="flex-direction:row;align-items:center;gap:8px;display:flex"><input type="checkbox" id="force" style="width:auto"> Re-run pairs already tested</label>
+<label style="flex-direction:row;align-items:center;gap:8px;display:flex"><input type="checkbox" id="force" style="width:auto"> Run-all: include already-tested pairs (picked models always re-run)</label>
 <div style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="runJob(false)" id="rbtn">Run task</button><button class="ghost" onclick="runJob(true)" id="rabtn">Run all tasks</button><button class="ghost" onclick="cancelJob()" id="cancelbtn" disabled>Cancel</button></div>
 </div>
 <p class="muted" id="jmsg" aria-live="polite"></p>
