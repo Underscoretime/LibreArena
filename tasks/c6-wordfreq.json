@@ -1,0 +1,1 @@
+{"category": "coding", "checks": [{"type": "regex", "value": "(Counter|most_common|\\.count\\()"}], "id": "c6-wordfreq", "intelligence": {"eligible": true}, "name": "Most common word", "prompt": "The variable words holds a list of words. Write a Python snippet finding the most common word. Reply with code only.", "system": "", "tags": ["coding", "python", "medium"]}

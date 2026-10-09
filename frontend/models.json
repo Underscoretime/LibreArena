@@ -1,0 +1,1 @@
+[{"arch": "dense", "family": "Qwen3.5", "id": "qwen/qwen3.5-9b", "params_b": 9, "quant": "Q4", "vendor": "Qwen"}, {"arch": "dense", "family": "Gemma 4", "id": "google/gemma-4-12b-qat", "params_b": 12, "quant": "QAT", "vendor": "Google"}, {"arch": "moe", "family": "Gemma 4", "id": "google/gemma-4-e4b", "params_b": 4, "quant": null, "vendor": "Google"}]

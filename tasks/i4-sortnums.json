@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "contains", "value": "1, 3, 5, 9"}], "id": "i4-sortnums", "intelligence": {"eligible": true}, "name": "Sort numbers", "prompt": "Reply with these numbers sorted ascending, separated by comma and space: 9, 1, 5, 3. Reply with only the result.", "system": "", "tags": ["instruction", "easy"]}

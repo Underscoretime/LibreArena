@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015"><title>Tasks — LibreArena</title><link rel="stylesheet" href="/style.css?v=4"></head><body>
+<div class="nav"><a href="/">Leaderboard</a><a href="/intelligence.html">Intelligence</a><a href="/tasks.html" aria-current="page">Tasks</a></div>
+<h1 style="font-size:24px">Tasks</h1><div class="runs" id="list"></div>
+<h2>New task</h2>
+<div class="formgrid">
+<label>Name<input id="name" placeholder="Ping test" required></label>
+<label>Prompt<textarea id="prompt" placeholder="ping" required></textarea></label>
+<label>Category<select id="cat"><option>instruction</option><option>coding</option><option>fun</option></select></label>
+<label>Tags (comma-separated)<input id="tags" placeholder="fun,misc"></label>
+<label>Check<select id="ctype"><option value="contains">contains</option><option value="regex">regex</option><option value="not-contains">not-contains</option><option value="manual-only">manual-only</option></select></label>
+<label>Check value<input id="cval" placeholder="e.g. pong"></label>
+<label style="flex-direction:row;align-items:center;gap:8px;display:flex"><input type="checkbox" id="intel" checked style="width:auto"> Count toward Intelligence</label>
+<div><button onclick="createTask()" id="cbtn">Create task</button> <span id="cmsg" class="muted" aria-live="polite"></span></div>
+</div>
+<h2>Run</h2>
+<div class="formgrid">
+<label>Task<select id="task"></select></label>
+<p class="muted" id="tsize" style="margin:0"></p>
+<div><div class="muted" style="font-size:13px;margin-bottom:4px">Models (only loaded ones run)</div><div id="modellist" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
+<label>Override temp (optional)<input id="temp" placeholder="server default"></label>
+<label>Max tokens cap (optional, protects small context windows)<input id="maxtok" placeholder="server default"></label>
+<label style="flex-direction:row;align-items:center;gap:8px;display:flex"><input type="checkbox" id="force" style="width:auto"> Re-run pairs already tested</label>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="runJob(false)" id="rbtn">Run task</button><button class="ghost" onclick="runJob(true)" id="rabtn">Run all tasks</button><button class="ghost" onclick="cancelJob()" id="cancelbtn" disabled>Cancel</button></div>
+</div>
+<p class="muted" id="jmsg" aria-live="polite"></p>
+<div id="out" class="runs" style="margin-top:10px"></div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LSKEY='librearena:lastJobId';
+let pollTimer=null, currentJob=null, TASKS=[];
+const est=t=>Math.max(1,Math.round(((t.system||'').length+(t.prompt||'').length)/4));
+async function load(){let t=[];try{t=await (await fetch('/api/tasks')).json();}catch(e){$('list').innerHTML='<div class="runrow">Could not load tasks.</div>';return;}
+  TASKS=t;
+  $('list').innerHTML=t.length?t.map(x=>`<div class="runrow"><span class="pill">${esc(x.category||'?')}</span><b>${esc(x.id)}</b>${x.intelligence?.eligible===false?'<span class="pill">fun</span>':''}<span class="muted">${esc((x.tags||[]).join(','))} · ~${est(x)} tok · ${esc(x.prompt.slice(0,90))}</span></div>`).join(''):'<div class="runrow muted">No tasks yet.</div>';
+  $('task').innerHTML=t.map(x=>`<option>${esc(x.id)}</option>`).join('');updSize();
+  try{const m=await (await fetch('/api/models')).json();
+    $('modellist').innerHTML=(m.all||[]).map(x=>x.loaded
+      ?`<label style="flex-direction:row;align-items:center;gap:6px;display:flex;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer"><input type="checkbox" data-model="${esc(x.id)}" checked style="width:auto"><span class="model">${esc(x.id)}</span></label>`
+      :`<span class="pill" title="not loaded in LM Studio">${esc(x.id)} · offline</span>`).join('')||'<span class="muted">none</span>';
+  }catch(e){$('modellist').innerHTML='<span class="muted">LM Studio unreachable</span>';}
+  const last=localStorage.getItem(LSKEY);
+  if(last){try{const j=await (await fetch('/api/jobs/'+encodeURIComponent(last))).json();if(j.id){renderJob(j);if(j.status==='queued'||j.status==='running'){currentJob=j.id;startPoll(j.id);}else $('jmsg').textContent=`Last job ${j.id}: ${j.status} (${j.counts.done}/${j.counts.total} done)`;}}catch(e){localStorage.removeItem(LSKEY);}}
+}
+function updSize(){const t=TASKS.find(x=>x.id===$('task').value);if(t)$('tsize').textContent=`Prompt ≈ ${est(t)} tokens · each run uses a fresh context (no history carried).`;}
+$('task').addEventListener('change',updSize);
+async function createTask(){
+  const m=$('cmsg');m.textContent='';
+  if(!$('name').value.trim()||!$('prompt').value.trim()){m.textContent='Name and prompt are required.';return;}
+  $('cbtn').disabled=true;
+  const tags=$('tags').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const ct=$('ctype').value,cv=$('cval').value;
+  const body={name:$('name').value,prompt:$('prompt').value,category:$('cat').value,tags,checks:ct==='manual-only'?[{type:'manual-only'}]:[{type:ct,value:cv}],intelligence:{eligible:$('intel').checked}};
+  try{const res=await fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok){m.textContent='Create failed: '+res.status+' '+await res.text();}
+    else{m.textContent='Created.';$('name').value=$('prompt').value=$('cval').value='';load();}
+  }catch(e){m.textContent='Create failed.';}
+  $('cbtn').disabled=false;
+}
+$('cat').addEventListener('change',()=>{if($('cat').value==='fun')$('intel').checked=false;});
+function pillFor(st){return st==='done'?'<span class="pill pass">done</span>':st==='error'?'<span class="pill fail">error</span>':st==='cancelled'?'<span class="pill">cancelled</span>':st==='running'?'<span class="pill warn">thinking…</span>':'<span class="pill">queued</span>';}
+function renderJob(j){
+  const tasks=(j.task_ids||[j.task_id]).length;
+  $('jmsg').textContent=`Job ${j.id} · ${tasks} task${tasks===1?'':'s'} · ${j.status} · ${j.counts.done}/${j.counts.total} done${j.counts.error?` · ${j.counts.error} error`:''}${j.counts.cancelled?` · ${j.counts.cancelled} cancelled`:''}`;
+  $('out').innerHTML=(j.items||[]).map(it=>`<div class="runrow">${pillFor(it.status)}<span class="muted">${esc(it.task||j.task_id||'')}</span><span class="model">${esc(it.model)}</span>${it.run_id?`<a href="/review.html?id=${encodeURIComponent(it.run_id)}">Score</a>`:''}${it.duration_ms?`<span class="muted">${it.duration_ms}ms</span>`:''}${it.error?`<span class="muted">${esc(it.error)}</span>`:''}${it.status==='running'&&it.partial_text?`<span class="muted">“${esc(it.partial_text.slice(-120))}…”</span>`:''}</div>`).join('');
+  $('cancelbtn').disabled=!(j.status==='queued'||j.status==='running');
+}
+function startPoll(jid){
+  clearInterval(pollTimer);currentJob=jid;$('cancelbtn').disabled=false;
+  pollTimer=setInterval(async()=>{
+    try{const j=await (await fetch('/api/jobs/'+encodeURIComponent(jid))).json();renderJob(j);
+      if(!['queued','running'].includes(j.status)){clearInterval(pollTimer);currentJob=null;$('rbtn').disabled=false;$('rbtn').textContent='Run task';$('rabtn').disabled=false;}
+    }catch(e){}
+  },1500);
+}
+async function runJob(all){
+  const btn=$('rbtn'),box=$('out');btn.disabled=true;$('rabtn').disabled=true;btn.textContent='Starting…';clearInterval(pollTimer);
+  box.innerHTML='<div class="runrow muted">Starting job…</div>';
+  const o={};if($('temp').value!=='')o.temperature=+$('temp').value;if($('maxtok').value!=='')o.max_tokens=+$('maxtok').value;
+  const models=[...document.querySelectorAll('#modellist input[data-model]:checked')].map(c=>c.dataset.model);
+  const payload={override:Object.keys(o).length?o:null,force:$('force').checked};
+  if(all){payload.task_ids=TASKS.map(t=>t.id);}else{payload.task_id=$('task').value;}
+  payload.models=models.length?models:null;
+  try{
+    const res=await fetch('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(res.status===502){box.innerHTML='<div class="runrow">No loaded chat models — load one in LM Studio first.</div>';btn.disabled=false;$('rabtn').disabled=false;btn.textContent='Run task';return;}
+    const j=await res.json();
+    if(j.status==='skipped'){box.innerHTML='';$('jmsg').textContent=j.detail;btn.disabled=false;$('rabtn').disabled=false;btn.textContent='Run task';return;}
+    const jid=j.job_id;
+    $('jmsg').textContent=(j.deduped?'Resumed matching active job. ':'Job started.')+(j.skipped?` Skipped already-tested: ${j.skipped.join(', ')}.`:'');
+    localStorage.setItem(LSKEY,jid);
+    const full=await (await fetch('/api/jobs/'+encodeURIComponent(jid))).json();
+    renderJob(full);btn.textContent='Running… (you can refresh, progress resumes)';
+    startPoll(jid);
+  }catch(e){box.innerHTML='<div class="runrow">Run failed — is the server running?</div>';btn.disabled=false;$('rabtn').disabled=false;btn.textContent='Run task';}
+}
+async function cancelJob(){
+  if(!currentJob)return;
+  await fetch('/api/jobs/'+encodeURIComponent(currentJob)+'/cancel',{method:'POST'});
+}
+load();
+</script></body></html>

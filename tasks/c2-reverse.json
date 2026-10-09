@@ -1,0 +1,1 @@
+{"category": "coding", "checks": [{"type": "contains", "value": "olleh"}], "id": "c2-reverse", "intelligence": {"eligible": true}, "name": "Reverse string", "prompt": "Write a Python function reverse(s) returning the string reversed. Example: reverse(\"hello\") returns \"olleh\". Reply with code only.", "system": "", "tags": ["coding", "python", "easy"]}

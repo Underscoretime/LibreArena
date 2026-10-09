@@ -1,0 +1,1 @@
+{"category": "coding", "checks": [{"type": "contains", "value": "55"}], "id": "c3-fib", "intelligence": {"eligible": true}, "name": "Fibonacci", "prompt": "Write a Python function fib(n) returning the nth Fibonacci number (fib(0)=0, fib(1)=1). End with a comment giving fib(10), like # 55. Reply with code only.", "system": "", "tags": ["coding", "python", "easy"]}

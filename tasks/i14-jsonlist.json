@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "regex", "value": "\\[\\s*5\\s*,\\s*4\\s*,\\s*3\\s*,\\s*2\\s*,\\s*1\\s*\\]"}], "id": "i14-jsonlist", "intelligence": {"eligible": true}, "name": "Reversed JSON list", "prompt": "Reply with ONLY a JSON list of the numbers 1 to 5 in reverse order. No other text.", "system": "", "tags": ["instruction", "hard"]}

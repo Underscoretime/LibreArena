@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "regex", "value": "^THE CAT NAPS\\.?\\s*$"}], "id": "i2-caps", "intelligence": {"eligible": true}, "name": "All caps echo", "prompt": "Repeat this back in ALL CAPS and nothing else: the cat naps", "system": "", "tags": ["instruction", "easy"]}

@@ -1,0 +1,1 @@
+{"category": "coding", "checks": [{"type": "contains", "value": "None"}], "id": "c9-safediv", "intelligence": {"eligible": true}, "name": "Safe divide", "prompt": "Write a Python function safe_div(a, b) returning a divided by b, or None when b is zero. Reply with code only.", "system": "", "tags": ["coding", "python", "medium"]}

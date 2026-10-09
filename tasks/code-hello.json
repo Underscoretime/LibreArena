@@ -1,0 +1,1 @@
+{"category": "coding", "checks": [{"type": "contains", "value": "hello"}], "id": "code-hello", "intelligence": {"eligible": true}, "name": "Code hello", "prompt": "Write a Python function hello() that returns the string 'hello'. Reply with code only.", "system": "", "tags": ["coding", "python", "smoke"]}

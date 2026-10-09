@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015">
+<title>Intelligence — LibreArena</title><link rel="stylesheet" href="/style.css?v=4"></head><body>
+<div class="nav"><a href="/">Leaderboard</a><a href="/intelligence.html" aria-current="page">Intelligence</a><a href="/tasks.html">Tasks</a></div>
+<div class="top"><h1>Intelligence</h1></div>
+<p class="sub" id="sub">Single score per model from real benchmarks only · coding + instruction, fun/misc excluded</p>
+<div class="filters">
+<label>Size<select id="fparams"><option value="">All sizes</option><option value="s">≤4B</option><option value="m">4–9B</option><option value="l">9–15B</option><option value="xl">15–35B</option><option value="xxl">35B+</option><option value="unk">Unknown</option></select></label>
+<label>Arch<select id="farch"><option value="">All</option><option value="dense">Dense</option><option value="moe">MoE</option></select></label>
+<span id="vendors" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></span>
+<span class="seg" role="group" aria-label="orientation"><button id="oh" onclick="setOrient('h')">Bars</button><button id="ov" onclick="setOrient('v')">Columns</button></span>
+<button class="ghost" onclick="load()">Apply</button>
+</div>
+<p class="muted" id="status">Loading…</p>
+<div class="vchart-card">
+<div class="vchart-head"><h2>LibreArena Intelligence Index</h2><p id="chead-sub"></p></div>
+<div id="chart"></div>
+</div>
+<details class="muted" style="margin-top:12px"><summary>How is this computed?</summary>
+<p>Each eligible benchmark is worth 1 point. Per task: <code>0.7 × auto pass-rate + 0.3 × human score</code> (human 1–5 mapped to 0–1); auto-only or human-only tasks use what exists. Missing tasks count as 0. Total = sum, so with 10 benchmarks the scale is 0–10. Models covering fewer than half the benchmarks are marked ~provisional. Embedding models are excluded.</p></details>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const EMBED_PAT=/embed|e5-|bge-|gte-|nomic-embed|sentence-|instructor|retrieval|rerank|text-embedding/i;
+const VENDOR_COLORS={Qwen:'#6157ff',Google:'#34a853',LFM:'#111111',Meta:'#0082fb',Mistral:'#ff7000',Microsoft:'#00a4ef',DeepSeek:'#4d6bfe',Unknown:'#5b6472'};
+const VENDOR_LETTER={Qwen:'Q',Google:'G',LFM:'L',Meta:'M',Mistral:'M',Microsoft:'P',DeepSeek:'D',Unknown:'?'};
+const vcolor=v=>VENDOR_COLORS[v]||`hsl(${[...(v||'?')].reduce((a,c)=>a+c.charCodeAt(0),0)%360} 45% 45%)`;
+const badge=v=>{const l=VENDOR_LETTER[v]||(v||'?')[0].toUpperCase();const extra=v==='LFM'?'border:1px solid #e9e6da;':'';return `<span class="vbadge" title="${esc(v)}" style="background:${vcolor(v)};${extra}">${esc(l)}</span>`;};
+const q=new URLSearchParams(location.search);
+let ORIENT=q.get('orient')||'h';
+for(const [k,id] of [['params','fparams'],['arch','farch']]){if(q.get(k))$(id).value=q.get(k);}
+let SELV=new Set((q.get('vendor')||'').split(',').filter(Boolean));
+function isEligible(t){if(t.intelligence?.eligible!=null)return !!t.intelligence.eligible;
+  if((t.tags||[]).some(x=>['fun','misc'].includes(String(x).toLowerCase())))return false;
+  return ['coding','instruction'].includes(t.category);}
+function guessMeta(id){const s=String(id).toLowerCase();
+  const vendor=/qwen/.test(s)?'Qwen':/gemma|google/.test(s)?'Google':/llama|meta/.test(s)?'Meta':/mistral|mixtral/.test(s)?'Mistral':/phi/.test(s)?'Microsoft':/deepseek/.test(s)?'DeepSeek':'Unknown';
+  const m=s.match(/(\d+(?:\.\d+)?)\s?b/);return{vendor,params_b:m?+m[1]:null,arch:/moe|e\d+b|a\d+b|mixtral/.test(s)?'moe':'unknown'};}
+const bucket=p=>p==null?'unk':p<=4?'s':p<=9?'m':p<=15?'l':p<=35?'xl':'xxl';
+function setOrient(o){ORIENT=o;load();}
+function sourceOf(r){const hasA=r.auto!=null,hasH=r.human!=null;return hasA&&hasH?'mixed':hasA?'auto':'human';}
+async function load(){
+  const st=$('status');st.textContent='Loading…';
+  let tasks,runs,reg=[];try{[tasks,runs]=await Promise.all([(await fetch('/api/tasks')).json(),(await fetch('/api/runs')).json()]);
+    try{reg=await (await fetch('/models.json')).json();}catch(e){} }
+  catch(e){st.textContent='Could not load API. Is the server running?';return;}
+  const REG=Object.fromEntries(reg.map(m=>[m.id,m]));
+  const elig=tasks.filter(isEligible), N=elig.length;
+  if(!N){st.textContent='No benchmarks yet — mark a task as counting toward Intelligence.';$('chart').innerHTML='';return;}
+  runs=runs.filter(r=>!EMBED_PAT.test(r.model||''));
+  const pb=$('fparams').value,ar=$('farch').value;
+  history.replaceState(null,'',`?params=${pb}&arch=${ar}&vendor=${[...SELV].join(',')}&orient=${ORIENT}`);
+  $('oh').setAttribute('aria-pressed',ORIENT==='h');$('ov').setAttribute('aria-pressed',ORIENT==='v');
+  const vendors=[...new Set(runs.map(r=>(REG[r.model]||guessMeta(r.model)).vendor))].sort();
+  $('vendors').innerHTML=vendors.map(v=>`<button class="ghost" data-v="${esc(v)}" style="${SELV.size&&!SELV.has(v)?'opacity:.45':''};padding:4px 8px;display:flex;gap:6px;align-items:center">${badge(v)}${esc(v)}</button>`).join('');
+  document.querySelectorAll('#vendors button').forEach(b=>b.onclick=()=>{const v=b.dataset.v;SELV.has(v)?SELV.delete(v):SELV.add(v);load();});
+  const by={};runs.forEach(r=>{(by[r.model]=by[r.model]||[]).push(r);});
+  let rows=Object.entries(by).map(([m,rs])=>{
+    const meta=REG[m]||{...guessMeta(m),id:m};
+    let sum=0,covered=0,autoSum=0,autoN=0,hSum=0,hN=0;
+    for(const t of elig){
+      const trs=rs.filter(r=>r.task_id===t.id);
+      if(!trs.length)continue;
+      const ap=trs.filter(r=>r.auto?.pass!=null),hs=trs.filter(r=>r.human?.score!=null);
+      const a=ap.length?ap.filter(r=>r.auto.pass).length/ap.length:null;
+      const h=hs.length?(hs.reduce((x,r)=>x+r.human.score,0)/hs.length-1)/4:null;
+      let s=null;if(a!=null&&h!=null)s=.7*a+.3*h;else if(a!=null)s=a;else if(h!=null)s=h;else continue;
+      covered++;sum+=s;
+      if(a!=null){autoSum+=a;autoN++;}if(h!=null){hSum+=h;hN++;}
+    }
+    return{m,meta,score:sum,covered,auto:autoN?autoSum/autoN:null,human:hN?(hSum/hN*4+1):null};
+  }).filter(r=>(!SELV.size||SELV.has(r.meta.vendor))&&(!pb||bucket(r.meta.params_b)===pb)&&(!ar||(ar==='moe'?String(r.meta.arch).startsWith('moe'):r.meta.arch==='dense')));
+  rows.sort((a,b)=>b.score-a.score||b.covered-a.covered);
+  $('sub').textContent=`${N} benchmark${N===1?'':'s'} · scale 0–${N} · provisional marked ~`;
+  $('chead-sub').textContent=`Locally benchmarked · ${rows.length} of ${Object.keys(by).length} models · ${N} benchmark${N===1?'':'s'}`;
+  const ranN=rows.filter(r=>r.covered>0).length;
+  st.textContent=`${rows.length} model${rows.length===1?'':'s'}`+(ranN<rows.length?` · ${rows.length-ranN} have no benchmark runs yet — run a task`:'');
+  $('chart').innerHTML=rows.length?(ORIENT==='v'?renderV(rows,N):rows.map(r=>{const prov=r.covered<Math.max(1,Math.ceil(N/2));
+    const pct=N?Math.round(100*r.score/N):0,src=sourceOf(r);
+    return `<div class="irow${prov?' prov':''}" data-source="${src}" style="--vc:${vcolor(r.meta.vendor)}" title="auto ${r.auto==null?'—':Math.round(r.auto*100)+'%'} · human ${r.human==null?'—':r.human.toFixed(1)} · ${r.covered}/${N} tasks · ${esc(r.meta.arch||'?')} · ${r.meta.params_b??'?'}B">${badge(r.meta.vendor)}<span class="imodel">${esc(r.m)}</span><span class="ibar"><span class="ifill" style="width:${pct}%"></span></span><span class="iscore">${prov?'~':''}${r.score.toFixed(1)}</span><span class="muted">/${N}</span></div>`;}).join(''))+(LEGEND):'<div class="runrow muted">No models match these filters.</div>';
+}
+const LEGEND=`<div class="legend"><span><span class="sw" style="background:#8b93a5"></span>auto + human</span><span><span class="sw" style="background:repeating-linear-gradient(45deg,#888 0 4px,transparent 4px 8px)"></span>auto only</span><span><span class="sw" style="border:2px solid #888;background:transparent"></span>human only</span><span>~ provisional</span></div>`;
+function renderV(rows,N){return `<div class="vchart">`+rows.map(r=>{const prov=r.covered<Math.max(1,Math.ceil(N/2));
+    const pct=N?Math.round(100*r.score/N):0,src=sourceOf(r),low=pct<22;
+    return `<div class="vcol${prov?' prov':''}" data-source="${src}" style="--vc:${vcolor(r.meta.vendor)}" title="${esc(r.m)} · auto ${r.auto==null?'—':Math.round(r.auto*100)+'%'} · human ${r.human==null?'—':r.human.toFixed(1)} · ${r.covered}/${N}">${low?`<span class="vscore low">${prov?'~':''}${r.score.toFixed(1)}</span>`:''}<div class="vbar"><div class="vfill" style="height:${pct}%"></div>${low?'':`<span class="vscore">${prov?'~':''}${r.score.toFixed(1)}</span>`}</div><div class="vmeta">${badge(r.meta.vendor)}<div class="vlabel"><span>${esc(r.m)}</span></div></div></div>`;}).join('')+`</div>`+LEGEND;}
+for(const id of ['fparams','farch'])$(id).addEventListener('change',load);
+load();
+</script></body></html>

@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "regex", "value": "^blueberry pancake\\.?\\s*$"}], "id": "i1-echo", "intelligence": {"eligible": true}, "name": "Echo exact", "prompt": "Reply with exactly this and nothing else: blueberry pancake", "system": "", "tags": ["instruction", "easy"]}

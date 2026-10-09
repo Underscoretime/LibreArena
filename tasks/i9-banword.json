@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "not-contains", "value": "water"}], "id": "i9-banword", "intelligence": {"eligible": true}, "name": "Banned word", "prompt": "Explain what rain is without using the word water. Reply with only the explanation.", "system": "", "tags": ["instruction", "medium"]}

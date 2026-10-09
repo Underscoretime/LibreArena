@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "regex", "value": "(- [^\\n]+(\\n|$)){3}"}], "id": "i6-threelines", "intelligence": {"eligible": true}, "name": "Three bullet lines", "prompt": "Name 3 colors, one per line, each line starting with '- '. Reply with only that.", "system": "", "tags": ["instruction", "medium"]}

@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "regex", "value": "^(YES|NO)\\.?\\s*$"}], "id": "i5-yesno", "intelligence": {"eligible": true}, "name": "Yes or no only", "prompt": "Is 7 a prime number? Answer with only YES or NO, nothing else.", "system": "", "tags": ["instruction", "easy"]}

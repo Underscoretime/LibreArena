@@ -1,0 +1,1 @@
+{"category": "coding", "checks": [{"type": "contains", "value": "mid"}], "id": "c8-bisect", "intelligence": {"eligible": true}, "name": "Binary search", "prompt": "Write a Python function binary_search(xs, x) over a sorted list, using lo, hi and mid variables, returning the index of x or -1 if absent. Reply with code only.", "system": "", "tags": ["coding", "python", "medium"]}

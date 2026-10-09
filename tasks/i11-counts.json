@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "contains", "value": "6"}], "id": "i11-counts", "intelligence": {"eligible": true}, "name": "Count the letter", "prompt": "How many times does the letter s appear in 'assess mistakes'? Reply with only the number.", "system": "", "tags": ["instruction", "medium"]}

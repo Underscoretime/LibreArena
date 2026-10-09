@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015"><title>Review — LibreArena</title><link rel="stylesheet" href="/style.css?v=3"></head><body>
+<div class="nav"><a href="/">Leaderboard</a><a href="/intelligence.html">Intelligence</a><a href="/tasks.html">Tasks</a></div>
+<h1 id="title" style="font-size:22px">Run</h1>
+<p class="sub" id="meta">Loading…</p>
+<h3>Prompt</h3><pre id="prompt"></pre>
+<h3>Response</h3><pre id="resp"></pre>
+<div class="scorebar">
+<label>Score (1–5)<select id="score"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+<label>Verdict<select id="verdict"><option value="">—</option><option value="pass">pass</option><option value="fail">fail</option></select></label>
+<label style="flex:1;min-width:160px">Note<input id="note" placeholder="what worked, what failed"></label>
+<button onclick="save()">Save</button>
+<span id="msg" aria-live="polite"></span>
+</div>
+<div style="margin-top:10px;display:flex;gap:8px"><button class="ghost" onclick="nav(-1)">← Prev unscored</button><button class="ghost" onclick="nav(1)">Next unscored →</button><span class="muted" id="prog"></span></div>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const id=new URLSearchParams(location.search).get('id');
+let list=[];
+async function init(){
+  let r;
+  try{r=await (await fetch('/api/runs/'+encodeURIComponent(id))).json();}
+  catch(e){document.getElementById('meta').textContent='Could not load run.';return;}
+  if(r.detail){document.getElementById('meta').textContent='Run not found.';return;}
+  document.getElementById('title').textContent=r.task_id+' · '+r.model;
+  document.getElementById('meta').innerHTML=`${r.auto?.pass===true?'<span class="pill pass">auto pass</span>':r.auto?.pass===false?'<span class="pill fail">auto fail</span>':'<span class="pill warn">needs score</span>'} <span class="muted">${r.duration_ms}ms · tokens ${esc(r.prompt_tokens??'—')}/${esc(r.completion_tokens??'—')} · model <code>${esc(r.effective_config?.model||r.model)}</code>${r.effective_config?.override?` · override ${esc(JSON.stringify(r.effective_config.override))}`:' · server defaults'}</span>`;
+  document.getElementById('prompt').textContent=r.prompt;
+  document.getElementById('resp').textContent=r.response||('(error: '+(r.error||'?')+')');
+  if(r.human?.score)document.getElementById('score').value=r.human.score;
+  if(r.human?.verdict)document.getElementById('verdict').value=r.human.verdict;
+  document.getElementById('note').value=r.human?.note||'';
+  list=await (await fetch('/api/runs')).json();
+  const un=list.filter(x=>x.human?.score==null);
+  document.getElementById('prog').textContent=`unscored ${un.length} of ${list.length}`;
+}
+async function save(){
+  const msg=document.getElementById('msg');msg.textContent='Saving…';
+  const body={score:score.value?+score.value:null,verdict:verdict.value||null,note:note.value};
+  const res=await fetch('/api/runs/'+encodeURIComponent(id)+'/score',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  msg.textContent=res.ok?'Saved':('Save failed: '+res.status);
+  if(res.ok)setTimeout(()=>nav(1),350);
+}
+async function nav(d){
+  const un=list.filter(r=>r.human?.score==null);const i=un.findIndex(r=>r.id===id);
+  const n=un[i+d];if(n)location.search='?id='+encodeURIComponent(n.id);else document.getElementById('msg').textContent='No more unscored runs.';
+}
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(['1','2','3','4','5'].includes(e.key))score.value=e.key;
+  else if(e.key==='p'||e.key==='P')verdict.value='pass';
+  else if(e.key==='f'||e.key==='F')verdict.value='fail';
+  else if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))save();
+  else return;
+});
+init();
+</script></body></html>

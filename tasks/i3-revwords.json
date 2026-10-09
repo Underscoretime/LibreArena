@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "contains", "value": "star moon sun"}], "id": "i3-revwords", "intelligence": {"eligible": true}, "name": "Reverse word order", "prompt": "Reverse the order of these words (the words, not the letters): sun moon star. Reply with only the result.", "system": "", "tags": ["instruction", "easy"]}

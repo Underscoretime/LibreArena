@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+runs/
+jobs/
+.DS_Store
+nohup.out

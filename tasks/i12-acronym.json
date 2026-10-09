@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "contains", "value": "TVOR"}], "id": "i12-acronym", "intelligence": {"eligible": true}, "name": "Acronym", "prompt": "Give the acronym (first letters, uppercase) of 'ten very old rabbits'. Reply with only that.", "system": "", "tags": ["instruction", "medium"]}

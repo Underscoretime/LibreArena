@@ -1,0 +1,1 @@
+{"category": "coding", "checks": [{"type": "contains", "value": "key"}], "id": "c11-sortkey", "intelligence": {"eligible": true}, "name": "Sort by key", "prompt": "The variable people holds a list of dicts with name and age keys. Write a Python snippet sorting it youngest-first. Reply with code only.", "system": "", "tags": ["coding", "python", "medium"]}

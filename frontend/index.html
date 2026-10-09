@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015">
+<title>LibreArena</title><link rel="stylesheet" href="/style.css?v=3"></head><body>
+<div class="top"><h1>Libre<span class="arena">Arena</span></h1></div>
+<p class="sub">Local-model fight lab · LM Studio: <code id="models">…</code></p>
+<div class="nav"><a href="/" aria-current="page">Leaderboard</a><a href="/intelligence.html">Intelligence</a><a href="/tasks.html">Tasks</a></div>
+<div class="filters">
+<label>Category<select id="fcat"><option value="">All</option><option>coding</option><option>instruction</option><option>fun</option></select></label>
+<label>Tag<input id="ftag" placeholder="e.g. misc"></label>
+<label>Verdict<select id="fverdict"><option value="">All</option><option value="auto-pass">Auto pass</option><option value="auto-fail">Auto fail</option><option value="human-pass">Human pass</option><option value="unscored">Needs score</option></select></label>
+<label>Sort<select id="fsort"><option value="human">Human score</option><option value="auto">Auto %</option><option value="time">Fastest</option><option value="runs">Most runs</option></select></label>
+<button class="ghost" onclick="load()">Apply</button>
+</div>
+<p class="muted" id="status">Loading…</p>
+<div class="tablewrap"><table><thead><tr><th>Model</th><th class="num">Runs</th><th class="num">Auto</th><th class="num">Human</th><th class="num">Time</th><th class="num">Tokens</th></tr></thead><tbody id="tb"></tbody></table></div>
+<h2>Runs</h2><div class="runs" id="runs"></div>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const q=new URLSearchParams(location.search);
+for(const [k,id] of [['cat','fcat'],['tag','ftag'],['verdict','fverdict'],['sort','fsort']]){if(q.get(k))document.getElementById(id).value=q.get(k);}
+let TASKS={};
+function pill(r){
+  if(r.human?.verdict==='pass')return '<span class="pill human">human pass</span>';
+  if(r.human?.verdict==='fail')return '<span class="pill fail">human fail</span>';
+  if(r.auto?.pass===true)return '<span class="pill pass">auto pass</span>';
+  if(r.auto?.pass===false)return '<span class="pill fail">auto fail</span>';
+  return '<span class="pill warn">needs score</span>';
+}
+async function load(){
+  const tb=document.getElementById('tb'),box=document.getElementById('runs'),st=document.getElementById('status');
+  tb.innerHTML='<tr><td colspan="6" class="muted">Loading…</td></tr>';box.innerHTML='';
+  let tasks,runs,mods={models:[]};
+  try{
+    [tasks,runs]=await Promise.all([(await fetch('/api/tasks')).json(),(await fetch('/api/runs')).json()]);
+    try{mods=await (await fetch('/api/models')).json();}catch(e){}
+  }catch(e){st.textContent='Could not load API. Is the server running?';return;}
+  TASKS=Object.fromEntries(tasks.map(t=>[t.id,t]));
+  document.getElementById('models').textContent=(mods.models||[]).join(', ')||'none loaded — load one in LM Studio';
+  const cat=fcat.value,tag=ftag.value.trim().toLowerCase(),vd=fverdict.value,sort=fsort.value;
+  history.replaceState(null,'',`?cat=${encodeURIComponent(cat)}&tag=${encodeURIComponent(tag)}&verdict=${vd}&sort=${sort}`);
+  let f=runs.filter(r=>{const t=TASKS[r.task_id]||{};if(cat&&(t.category||'')!==cat)return false;
+    if(tag&&!((t.tags||[]).join(' ').toLowerCase().includes(tag)))return false;
+    if(vd==='auto-pass'&&r.auto?.pass!==true)return false;if(vd==='auto-fail'&&r.auto?.pass!==false)return false;
+    if(vd==='human-pass'&&r.human?.verdict!=='pass')return false;if(vd==='unscored'&&r.human?.score!=null)return false;return true;});
+  st.textContent=`${f.length} run${f.length===1?'':'s'} match`;
+  const by={};f.forEach(r=>{(by[r.model]=by[r.model]||[]).push(r);});
+  let rows=Object.entries(by).map(([m,rs])=>{const ap=rs.filter(r=>r.auto?.pass===true).length,at=rs.filter(r=>r.auto?.pass!=null).length;
+    const hs=rs.map(r=>r.human?.score).filter(x=>x!=null);const hsp=rs.filter(r=>r.human?.verdict==='pass').length,hst=rs.filter(r=>r.human?.verdict!=null).length;
+    const ts=rs.map(r=>r.duration_ms||0);const tk=rs.map(r=>((r.prompt_tokens||0)+(r.completion_tokens||0))).filter(x=>x>0);
+    return{m,n:rs.length,ap,at,auto:at?Math.round(100*ap/at):null,human:hs.length?(hs.reduce((a,b)=>a+b,0)/hs.length).toFixed(2):null,
+      hstr:hst?`${hsp}/${hst}`:null,ms:Math.round(ts.reduce((a,b)=>a+b,0)/Math.max(1,ts.length)),tok:tk.length?Math.round(tk.reduce((a,b)=>a+b,0)/tk.length):null};});
+  const key={human:r=>-(+r.human||-1),auto:r=>-(r.auto??-1),time:r=>r.ms,runs:r=>-r.n}[sort];rows.sort((a,b)=>key(a)-key(b));
+  tb.innerHTML=rows.length?rows.map((r,i)=>`<tr class="${i===0&&rows.length>1?'leader':''}"><td class="model">${esc(r.m)}</td><td class="num">${r.n}</td><td class="num">${r.auto==null?'—':r.auto+'% <span class="muted">'+r.ap+'/'+r.at+'</span>'}</td><td class="num">${r.human??'—'}${r.hstr?` <span class="muted">${r.hstr}</span>`:''}</td><td class="num">${r.ms}ms</td><td class="num">${r.tok??'—'}</td></tr>`).join(''):'<tr><td colspan="6" class="muted">No runs match these filters.</td></tr>';
+  const shown=f.slice(0,100);
+  box.innerHTML=shown.length?shown.map(r=>{const t=TASKS[r.task_id]||{};return`<div class="runrow">${pill(r)}<a class="id" href="/review.html?id=${encodeURIComponent(r.id)}">${esc(r.id)}</a><span class="model">${esc(r.model)}</span><span class="muted">${esc(t.category||'?')} · ${esc((t.tags||[]).join(','))} · ${r.duration_ms}ms</span></div>`;}).join('')+(f.length>100?`<div class="runrow muted">+ ${f.length-100} more — refine filters</div>`:''):'<div class="runrow muted">Nothing here yet — run a task.</div>';
+}
+for(const id of ['fcat','fverdict','fsort'])document.getElementById(id).addEventListener('change',load);
+let deb;document.getElementById('ftag').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(load,250);});
+load();
+</script></body></html>

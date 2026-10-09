@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "not-contains", "value": ","}], "id": "i8-nocomma", "intelligence": {"eligible": true}, "name": "No commas", "prompt": "Describe a dog in one sentence without using any commas. Reply with only that sentence.", "system": "", "tags": ["instruction", "medium"]}

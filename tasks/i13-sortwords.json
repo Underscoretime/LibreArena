@@ -1,0 +1,1 @@
+{"category": "instruction", "checks": [{"type": "regex", "value": "apple\\s+fig\\s+pear"}], "id": "i13-sortwords", "intelligence": {"eligible": true}, "name": "Sort words", "prompt": "Sort these words alphabetically, one per line: pear apple fig. Reply with only that.", "system": "", "tags": ["instruction", "medium"]}

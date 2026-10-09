@@ -1,0 +1,1 @@
+{"category": "coding", "checks": [{"type": "contains", "value": "nonlocal"}], "id": "c14-closure", "intelligence": {"eligible": true}, "name": "Counter closure", "prompt": "Write a Python function make_counter() returning a function that counts up 1, 2, 3 and so on with every call, using nonlocal state. Reply with code only.", "system": "", "tags": ["coding", "python", "hard"]}
