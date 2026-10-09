@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015">
-<title>Intelligence — LibreArena</title><link rel="stylesheet" href="/style.css?v=7"></head><body>
+<title>Intelligence — LibreArena</title><link rel="stylesheet" href="/style.css?v=8"></head><body>
 <a class="skip" href="#main">Skip to content</a>
 <main id="main">
 <div id="hdr"></div>
@@ -9,7 +9,7 @@
 <div class="filters">
 <label>Size<select id="fparams"><option value="">All sizes</option><option value="s">≤4B</option><option value="m">4–9B</option><option value="l">9–15B</option><option value="xl">15–35B</option><option value="xxl">35B+</option><option value="unk">Unknown</option></select></label>
 <label>Arch<select id="farch"><option value="">All</option><option value="dense">Dense</option><option value="moe">MoE</option></select></label>
-<span id="vendors" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></span>
+<span class="dropdown" id="vdrop"><button class="ghost" id="vbtn" aria-haspopup="true" aria-expanded="false">Vendors ▾</button><span class="drop-panel" id="vendors" hidden></span></span>
 <span class="seg" role="group" aria-label="orientation"><button id="oh" onclick="setOrient('h')">Bars</button><button id="ov" onclick="setOrient('v')">Columns</button></span>
 <button class="ghost" onclick="load()">Apply</button>
 </div>
@@ -49,8 +49,13 @@ async function load(){
   $('oh').setAttribute('aria-pressed',ORIENT==='h');$('ov').setAttribute('aria-pressed',ORIENT==='v');
   const vendors=[...new Set(runs.map(r=>(REG[r.model]||guessMeta(r.model)).vendor))].sort();
   if(!q.has('vendor'))SELV=new Set(vendors);
+  const ALLV=vendors;
+  const updVBtn=()=>{const b=$('vbtn');b.textContent=SELV.size===ALLV.length?'Vendors: all ▾':`Vendors (${SELV.size}/${ALLV.length}) ▾`;};
   $('vendors').innerHTML=vendors.map(v=>`<label class="vcheck"><input type="checkbox" data-v="${esc(v)}"${SELV.has(v)?' checked':''}>${badge(v)}${esc(v)}</label>`).join('');
-  document.querySelectorAll('#vendors input').forEach(c=>c.onchange=()=>{const v=c.dataset.v;c.checked?SELV.add(v):SELV.delete(v);load();});
+  updVBtn();
+  document.querySelectorAll('#vendors input').forEach(c=>c.onchange=()=>{const v=c.dataset.v;c.checked?SELV.add(v):SELV.delete(v);updVBtn();load();});
+  $('vbtn').onclick=e=>{e.stopPropagation();const p=$('vendors'),open=p.hidden;p.hidden=!open;$('vbtn').setAttribute('aria-expanded',open);};
+  if(!window._vdropBound){window._vdropBound=true;document.addEventListener('click',e=>{if(!e.target.closest('#vdrop'))$('vendors').hidden=true;});}
   const by={};runs.forEach(r=>{(by[r.model]=by[r.model]||[]).push(r);});
   let rows=Object.entries(by).map(([m,rs])=>{
     const meta=REG[m]||{...guessMeta(m),id:m};
