@@ -18,6 +18,7 @@
 <div class="vchart-head"><h2>LibreArena Intelligence Index</h2><p id="chead-sub"></p></div>
 <div id="chart"></div>
 </div>
+<div class="legend"><span><span class="sw" style="background:#8b93a5"></span>auto + human</span><span><span class="sw" style="background:repeating-linear-gradient(45deg,#888 0 4px,transparent 4px 8px)"></span>auto only</span><span><span class="sw" style="border:2px solid #888;background:transparent"></span>human only</span><span>~ provisional</span></div>
 <details class="muted" style="margin-top:12px"><summary>How is this computed?</summary>
 <p>Each eligible benchmark is worth 1 point. Per task: <code>0.7 × auto pass-rate + 0.3 × human score</code> (human 1–5 mapped to 0–1); auto-only or human-only tasks use what exists. Missing tasks count as 0. Total = sum, so with 10 benchmarks the scale is 0–10. Models covering fewer than half the benchmarks are marked ~provisional. Embedding models are excluded.</p></details>
 <script src="/shared.js"></script>
@@ -79,12 +80,11 @@ async function load(){
   st.textContent=`${rows.length} model${rows.length===1?'':'s'}`+(ranN<rows.length?` · ${rows.length-ranN} have no benchmark runs yet — run a task`:'');
   $('chart').innerHTML=rows.length?(ORIENT==='v'?renderV(rows,N):rows.map(r=>{const prov=r.covered<Math.max(1,Math.ceil(N/2));
     const pct=N?Math.round(100*r.score/N):0,src=sourceOf(r);
-    return `<div class="irow${prov?' prov':''}" data-source="${src}" style="--vc:${vcolor(r.meta.vendor)}" title="auto ${r.auto==null?'—':Math.round(r.auto*100)+'%'} · human ${r.human==null?'—':r.human.toFixed(1)} · ${r.covered}/${N} tasks · ${esc(r.meta.arch||'?')} · ${r.meta.params_b??'?'}B">${badge(r.meta.vendor)}<span class="imodel">${esc(r.m)}</span><span class="ibar"><span class="ifill" style="width:${pct}%"></span></span><span class="iscore">${prov?'~':''}${r.score.toFixed(1)}</span><span class="muted">/${N}</span></div>`;}).join(''))+(LEGEND):'<div class="runrow muted">No models match these filters.</div>';
+    return `<div class="irow${prov?' prov':''}" data-source="${src}" style="--vc:${vcolor(r.meta.vendor)}" title="auto ${r.auto==null?'—':Math.round(r.auto*100)+'%'} · human ${r.human==null?'—':r.human.toFixed(1)} · ${r.covered}/${N} tasks · ${esc(r.meta.arch||'?')} · ${r.meta.params_b??'?'}B">${badge(r.meta.vendor)}<span class="imodel">${esc(r.m)}</span><span class="ibar"><span class="ifill" style="width:${pct}%"></span></span><span class="iscore">${prov?'~':''}${r.score.toFixed(1)}</span><span class="muted">/${N}</span></div>`;}).join('')):'<div class="runrow muted">No models match these filters.</div>';
 }
-const LEGEND=`<div class="legend"><span><span class="sw" style="background:#8b93a5"></span>auto + human</span><span><span class="sw" style="background:repeating-linear-gradient(45deg,#888 0 4px,transparent 4px 8px)"></span>auto only</span><span><span class="sw" style="border:2px solid #888;background:transparent"></span>human only</span><span>~ provisional</span></div>`;
 function renderV(rows,N){return `<div class="vchart">`+rows.map(r=>{const prov=r.covered<Math.max(1,Math.ceil(N/2));
     const pct=N?Math.round(100*r.score/N):0,src=sourceOf(r),low=pct<22;
-    return `<div class="vcol${prov?' prov':''}" data-source="${src}" style="--vc:${vcolor(r.meta.vendor)}" title="${esc(r.m)} · auto ${r.auto==null?'—':Math.round(r.auto*100)+'%'} · human ${r.human==null?'—':r.human.toFixed(1)} · ${r.covered}/${N}">${low?`<span class="vscore low">${prov?'~':''}${r.score.toFixed(1)}</span>`:''}<div class="vbar"><div class="vfill" style="height:${pct}%"></div>${low?'':`<span class="vscore">${prov?'~':''}${r.score.toFixed(1)}</span>`}</div><div class="vmeta">${badge(r.meta.vendor)}<div class="vlabel"><span>${esc(r.m)}</span></div></div></div>`;}).join('')+`</div>`+LEGEND;}
+    return `<div class="vcol${prov?' prov':''}" data-source="${src}" style="--vc:${vcolor(r.meta.vendor)}" title="${esc(r.m)} · auto ${r.auto==null?'—':Math.round(r.auto*100)+'%'} · human ${r.human==null?'—':r.human.toFixed(1)} · ${r.covered}/${N}">${low?`<span class="vscore low">${prov?'~':''}${r.score.toFixed(1)}</span>`:''}<div class="vbar"><div class="vfill" style="height:${pct}%"></div>${low?'':`<span class="vscore">${prov?'~':''}${r.score.toFixed(1)}</span>`}</div><div class="vmeta">${badge(r.meta.vendor)}<div class="vlabel"><span>${esc(r.m)}</span></div></div></div>`;}).join('')+`</div>`;}
 for(const id of ['fparams','farch'])$(id).addEventListener('change',load);
 mountHeader('intel');
 load();
