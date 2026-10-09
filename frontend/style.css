@@ -102,8 +102,7 @@ label{font-size:13px;color:var(--muted);display:grid;gap:4px}
   background:repeating-linear-gradient(to top,transparent 0 59px,color-mix(in srgb,var(--line) 55%,transparent) 59px 60px);
   border-bottom:1px solid var(--line)}
 .vcol{display:flex;flex-direction:column;align-items:center;min-width:66px;flex:1;max-width:96px}
-.vbar{width:44px;height:240px;position:relative;background:color-mix(in srgb,var(--panel2) 70%,transparent);
-  border:1px solid var(--line);border-bottom:0;border-radius:7px 7px 0 0;overflow:hidden}
+.vbar{width:44px;height:240px;position:relative;background:transparent;border:0;overflow:hidden}
 .vfill{position:absolute;bottom:0;left:0;right:0;background:var(--vc);border-radius:6px 6px 0 0}
 .vcol[data-source="auto"] .vfill{background:repeating-linear-gradient(45deg,var(--vc) 0 7px,color-mix(in srgb,var(--vc) 35%,transparent) 7px 14px)}
 .vcol[data-source="human"] .vfill{background:transparent;border:2px solid var(--vc);border-bottom:0}
