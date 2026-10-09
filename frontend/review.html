@@ -5,6 +5,7 @@
 <div id="hdr"></div>
 <h1 id="title" style="font-size:22px">Run</h1>
 <p class="sub" id="meta">Loading…</p>
+<p class="sub" id="contextline"></p>
 <h3>Settings</h3><dl class="runs" id="settings" style="margin:14px 0 0;padding:4px 0"></dl>
 <h3>Prompt</h3><pre id="prompt"></pre>
 <h3>Response</h3><pre id="resp"></pre>
@@ -41,6 +42,18 @@ async function init(){
     (c.model_mismatch?`<div class="runrow"><span class="pill fail">routed to a different model</span></div>`:'');
   document.getElementById('prompt').textContent=r.prompt;
   document.getElementById('resp').textContent=r.response||('(error: '+(r.error||'?')+')');
+  try{
+    const tasks=await (await fetch('/api/tasks')).json();
+    const t=tasks.find(x=>x.id===r.task_id);
+    const elig=t?(t.intelligence?.eligible?true:(!t.intelligence?'maybe':false)):false;
+    const isElig=elig===true||(elig==='maybe'&&(t.category==='coding'||t.category==='instruction')&&!(t.tags||[]).some(x=>['fun','misc'].includes(String(x).toLowerCase())));
+    document.getElementById('contextline').innerHTML=isElig
+      ?`<span class="pill human">counts toward Intelligence</span>`
+      :`<span class="pill">fun task — leaderboard only, not Intelligence</span>`;
+  }catch(e){}
+  if(r.human?.score||r.human?.verdict){
+    document.getElementById('msg').textContent=`Already scored${r.human.score?` ${r.human.score}/5`:''}${r.human.verdict?` · ${r.human.verdict}`:''} — saving overwrites.`;
+  }
   if(r.human?.score)document.getElementById('score').value=r.human.score;
   if(r.human?.verdict)document.getElementById('verdict').value=r.human.verdict;
   document.getElementById('note').value=r.human?.note||'';
