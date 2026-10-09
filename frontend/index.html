@@ -1,21 +1,24 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015">
-<title>LibreArena</title><link rel="stylesheet" href="/style.css?v=3"></head><body>
+<title>LibreArena</title><link rel="stylesheet" href="/style.css?v=5"></head><body>
+<a class="skip" href="#main">Skip to content</a>
+<main id="main">
 <div class="top"><h1>Libre<span class="arena">Arena</span></h1></div>
 <p class="sub">Local-model fight lab · LM Studio: <code id="models">…</code></p>
 <div class="nav"><a href="/" aria-current="page">Leaderboard</a><a href="/intelligence.html">Intelligence</a><a href="/tasks.html">Tasks</a></div>
 <div class="filters">
 <label>Category<select id="fcat"><option value="">All</option><option>coding</option><option>instruction</option><option>fun</option></select></label>
-<label>Tag<input id="ftag" placeholder="e.g. misc"></label>
+<label>Tag<input id="ftag" name="tag" autocomplete="off" placeholder="e.g. misc…"></label>
 <label>Verdict<select id="fverdict"><option value="">All</option><option value="auto-pass">Auto pass</option><option value="auto-fail">Auto fail</option><option value="human-pass">Human pass</option><option value="unscored">Needs score</option></select></label>
 <label>Sort<select id="fsort"><option value="human">Human score</option><option value="auto">Auto %</option><option value="time">Fastest</option><option value="runs">Most runs</option></select></label>
 <button class="ghost" onclick="load()">Apply</button>
 </div>
 <p class="muted" id="status">Loading…</p>
-<div class="tablewrap"><table><thead><tr><th>Model</th><th class="num">Runs</th><th class="num">Auto</th><th class="num">Human</th><th class="num">Time</th><th class="num">Tokens</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th scope="col">Model</th><th scope="col" class="num">Runs</th><th scope="col" class="num">Auto</th><th scope="col" class="num">Human</th><th scope="col" class="num">Time</th><th scope="col" class="num">Tokens</th></tr></thead><tbody id="tb"></tbody></table></div>
 <h2>Runs</h2><div class="runs" id="runs"></div>
+</main>
+<script src="/shared.js"></script>
 <script>
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const q=new URLSearchParams(location.search);
 for(const [k,id] of [['cat','fcat'],['tag','ftag'],['verdict','fverdict'],['sort','fsort']]){if(q.get(k))document.getElementById(id).value=q.get(k);}
 let TASKS={};
@@ -57,4 +60,4 @@ async function load(){
 for(const id of ['fcat','fverdict','fsort'])document.getElementById(id).addEventListener('change',load);
 let deb;document.getElementById('ftag').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(load,250);});
 load();
-</script></body></html>
+</script></main></body></html>

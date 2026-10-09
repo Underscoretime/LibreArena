@@ -85,3 +85,17 @@ Plain HTML/CSS/JS, `fetch()` to FastAPI, no build.
 ## Non-goals for v1
 
 No Ollama/vLLM, no multi-turn prompts, no SQLite, no auth, no dataset included (2 examples only: `ping`, `code-hello`).
+
+## Built after v1 (delta, 2026-10-09)
+
+- Background jobs (`jobs/*.json`, 202 + poll, cancel, refresh-safe via localStorage).
+- Embedding + offline models filtered (native `/api/v0/models` type/state + id fallback).
+- Model-mismatch guard (response model != requested -> skipped, not scored).
+- Run-all (multi-task jobs), per-pair dedupe unless forced, sync `?sync=1` kept.
+- Per-run settings snapshot: temperature/max_tokens override-or-default, system prompt,
+  quantization/arch/context-length (null when LM Studio unreachable), kv-cache n/a.
+- Intelligence page: raw-point scale 0–N, vendor badges + brand colors,
+  Bars/Columns views, param/arch/vendor filters, auto-only striped texture.
+- 31 benchmarks (15 coding + 15 instruction + code-hello), `not-contains` check type,
+  `tasks/taste.md` records user verdicts. `judge.py` AST gate for future exec checks.
+- Run import: `POST /api/runs/import` (fresh id, never overwrites).

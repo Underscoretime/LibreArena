@@ -1,15 +1,17 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015"><title>Tasks — LibreArena</title><link rel="stylesheet" href="/style.css?v=4"></head><body>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015"><title>Tasks — LibreArena</title><link rel="stylesheet" href="/style.css?v=5"></head><body>
+<a class="skip" href="#main">Skip to content</a>
+<main id="main">
 <div class="nav"><a href="/">Leaderboard</a><a href="/intelligence.html">Intelligence</a><a href="/tasks.html" aria-current="page">Tasks</a></div>
 <h1 style="font-size:24px">Tasks</h1><div class="runs" id="list"></div>
 <h2>New task</h2>
 <div class="formgrid">
-<label>Name<input id="name" placeholder="Ping test" required></label>
-<label>Prompt<textarea id="prompt" placeholder="ping" required></textarea></label>
+<label>Name<input id="name" name="taskname" autocomplete="off" placeholder="Ping test…" required></label>
+<label>Prompt<textarea id="prompt" name="taskprompt" autocomplete="off" placeholder="ping…" required></textarea></label>
 <label>Category<select id="cat"><option>instruction</option><option>coding</option><option>fun</option></select></label>
-<label>Tags (comma-separated)<input id="tags" placeholder="fun,misc"></label>
+<label>Tags (comma-separated)<input id="tags" name="tags" autocomplete="off" placeholder="fun, misc…"></label>
 <label>Check<select id="ctype"><option value="contains">contains</option><option value="regex">regex</option><option value="not-contains">not-contains</option><option value="manual-only">manual-only</option></select></label>
-<label>Check value<input id="cval" placeholder="e.g. pong"></label>
+<label>Check value<input id="cval" name="checkvalue" autocomplete="off" spellcheck="false" placeholder="e.g. pong…"></label>
 <label style="flex-direction:row;align-items:center;gap:8px;display:flex"><input type="checkbox" id="intel" checked style="width:auto"> Count toward Intelligence</label>
 <div><button onclick="createTask()" id="cbtn">Create task</button> <span id="cmsg" class="muted" aria-live="polite"></span></div>
 </div>
@@ -18,16 +20,15 @@
 <label>Task<select id="task"></select></label>
 <p class="muted" id="tsize" style="margin:0"></p>
 <div><div class="muted" style="font-size:13px;margin-bottom:4px">Models (only loaded ones run)</div><div id="modellist" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
-<label>Override temp (optional)<input id="temp" placeholder="server default"></label>
-<label>Max tokens cap (optional, protects small context windows)<input id="maxtok" placeholder="server default"></label>
+<label>Override temp (optional)<input id="temp" name="temp" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="server default…"></label>
+<label>Max tokens cap (optional, protects small context windows)<input id="maxtok" name="maxtok" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="server default…"></label>
 <label style="flex-direction:row;align-items:center;gap:8px;display:flex"><input type="checkbox" id="force" style="width:auto"> Re-run pairs already tested</label>
 <div style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="runJob(false)" id="rbtn">Run task</button><button class="ghost" onclick="runJob(true)" id="rabtn">Run all tasks</button><button class="ghost" onclick="cancelJob()" id="cancelbtn" disabled>Cancel</button></div>
 </div>
 <p class="muted" id="jmsg" aria-live="polite"></p>
 <div id="out" class="runs" style="margin-top:10px"></div>
+<script src="/shared.js"></script>
 <script>
-const $=id=>document.getElementById(id);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LSKEY='librearena:lastJobId';
 let pollTimer=null, currentJob=null, TASKS=[];
 const est=t=>Math.max(1,Math.round(((t.system||'').length+(t.prompt||'').length)/4));
@@ -100,4 +101,4 @@ async function cancelJob(){
   await fetch('/api/jobs/'+encodeURIComponent(currentJob)+'/cancel',{method:'POST'});
 }
 load();
-</script></body></html>
+</script></main></body></html>

@@ -4,6 +4,8 @@
   --amber:#f0a22e; --mint:#43d39a; --red:#ef5d6b; --violet:#9a7bff;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
+.skip{position:absolute;left:-999px;top:8px;background:var(--amber);color:#1a1206;padding:8px 14px;border-radius:8px;z-index:50;font-weight:650}
+.skip:focus{left:8px}
 *{box-sizing:border-box}
 html{background:var(--bg);color-scheme:dark}
 body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);

@@ -1,21 +1,23 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015"><title>Review — LibreArena</title><link rel="stylesheet" href="/style.css?v=3"></head><body>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015"><title>Review — LibreArena</title><link rel="stylesheet" href="/style.css?v=5"></head><body>
+<a class="skip" href="#main">Skip to content</a>
+<main id="main">
 <div class="nav"><a href="/">Leaderboard</a><a href="/intelligence.html">Intelligence</a><a href="/tasks.html">Tasks</a></div>
 <h1 id="title" style="font-size:22px">Run</h1>
 <p class="sub" id="meta">Loading…</p>
-<h3>Settings</h3><div class="runs" id="settings"></div>
+<h3>Settings</h3><dl class="runs" id="settings" style="margin:14px 0 0;padding:4px 0"></dl>
 <h3>Prompt</h3><pre id="prompt"></pre>
 <h3>Response</h3><pre id="resp"></pre>
 <div class="scorebar">
 <label>Score (1–5)<select id="score"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
 <label>Verdict<select id="verdict"><option value="">—</option><option value="pass">pass</option><option value="fail">fail</option></select></label>
-<label style="flex:1;min-width:160px">Note<input id="note" placeholder="what worked, what failed"></label>
+<label style="flex:1;min-width:160px">Note<input id="note" name="note" autocomplete="off" placeholder="what worked, what failed…"></label>
 <button onclick="save()">Save</button>
 <span id="msg" aria-live="polite"></span>
 </div>
 <div style="margin-top:10px;display:flex;gap:8px"><button class="ghost" onclick="nav(-1)">← Prev unscored</button><button class="ghost" onclick="nav(1)">Next unscored →</button><span class="muted" id="prog"></span></div>
+<script src="/shared.js"></script>
 <script>
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const id=new URLSearchParams(location.search).get('id');
 let list=[];
 async function init(){
@@ -26,7 +28,7 @@ async function init(){
   document.getElementById('title').textContent=r.task_id+' · '+r.model;
   document.getElementById('meta').innerHTML=`${r.auto?.pass===true?'<span class="pill pass">auto pass</span>':r.auto?.pass===false?'<span class="pill fail">auto fail</span>':'<span class="pill warn">needs score</span>'} <span class="muted">${r.duration_ms}ms · tokens ${esc(r.prompt_tokens??'—')}/${esc(r.completion_tokens??'—')}</span>`;
   const c=r.effective_config||{};
-  const row=(k,v)=>`<div class="runrow"><span class="muted" style="min-width:130px">${k}</span><span class="model">${esc(v??'—')}</span></div>`;
+  const row=(k,v)=>`<div class="runrow" style="display:flex"><dt class="muted" style="min-width:130px">${k}</dt><dd class="model" style="margin:0">${esc(v??'—')}</dd></div>`;
   document.getElementById('settings').innerHTML=
     row('model',c.model||r.model)+
     row('temperature',c.temperature??'server default')+
@@ -66,4 +68,4 @@ document.addEventListener('keydown',e=>{
   else return;
 });
 init();
-</script></body></html>
+</script></main></body></html>

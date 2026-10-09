@@ -102,8 +102,11 @@ def api_models():
 
 @app.get("/api/tasks")
 def api_tasks():
+    import re as _re
     TASKS_DIR.mkdir(exist_ok=True)
-    return [read_json(p) for p in sorted(TASKS_DIR.glob("*.json"))]
+    def nat_key(p):
+        return [int(t) if t.isdigit() else t for t in _re.split(r"(\d+)", p.stem)]
+    return [read_json(p) for p in sorted(TASKS_DIR.glob("*.json"), key=nat_key)]
 
 
 @app.post("/api/tasks")
