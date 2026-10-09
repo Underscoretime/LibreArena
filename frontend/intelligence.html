@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1015">
-<title>Intelligence — LibreArena</title><link rel="stylesheet" href="/style.css?v=10"></head><body>
+<title>Intelligence — LibreArena</title><link rel="stylesheet" href="/style.css?v=11"></head><body>
 <a class="skip" href="#main">Skip to content</a>
 <main id="main">
 <div id="hdr"></div>
@@ -76,7 +76,7 @@ async function load(){
       if(a!=null){autoSum+=a;autoN++;}if(h!=null){hSum+=h;hN++;}
     }
     return{m,meta,score:sum,covered,ranTasks,errRuns,auto:autoN?autoSum/autoN:null,human:hN?(hSum/hN*4+1):null};
-  }).filter(r=>(!SELV.size||SELV.has(r.meta.vendor))&&(!pb||bucket(r.meta.params_b)===pb)&&(!ar||(ar==='moe'?String(r.meta.arch).startsWith('moe'):r.meta.arch==='dense')));
+  }).filter(r=>(!pb||bucket(r.meta.params_b)===pb)&&(!ar||(ar==='moe'?String(r.meta.arch).startsWith('moe'):r.meta.arch==='dense'))&&(SELV.size?SELV.has(r.meta.vendor):false));
   rows.sort((a,b)=>b.score-a.score||b.covered-a.covered);
   $('sub').textContent=`${N} benchmark${N===1?'':'s'} · scale 0–${N} · provisional marked ~`;
   $('chead-sub').textContent=`Locally benchmarked · ${rows.length} of ${Object.keys(by).length} models · ${N} benchmark${N===1?'':'s'}`;
