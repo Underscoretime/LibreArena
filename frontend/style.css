@@ -25,9 +25,12 @@ button.ghost:hover{border-color:var(--amber)}
 .nav{display:flex;gap:8px;margin:0 0 16px}
 .nav a{padding:6px 12px;border:1px solid var(--line);border-radius:8px;text-decoration:none;color:var(--text);background:var(--panel)}
 .nav a[aria-current="page"]{border-color:var(--amber)}
-.filters{position:sticky;top:0;z-index:5;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;background:color-mix(in srgb,var(--bg) 88%,transparent);
+.filters{position:sticky;top:0;z-index:5;display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:color-mix(in srgb,var(--bg) 88%,transparent);
   backdrop-filter:blur(6px);padding:10px 0;border-bottom:1px solid var(--line)}
 select,input,textarea{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.filters>label>select,.filters button,.filters>.vcheck{min-height:42px;box-sizing:border-box}
+.drop-panel input{min-height:0}
+.filters>.vcheck,.filters>.dropdown,.filters>.seg{align-self:center}
 button{background:var(--amber);color:#1a1206;border:0;border-radius:8px;padding:10px 14px;font-weight:650;cursor:pointer}
 button:disabled{opacity:.55;cursor:wait}
 button.ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
@@ -51,8 +54,8 @@ tbody tr.leader td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
 .runrow.bad{border-left-color:var(--red)}
 .runrow.todo{border-left-color:var(--amber)}
 .rank{font-family:var(--mono);color:var(--muted);font-size:12px;min-width:28px}
-.vcheck{display:flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--text)}
-.vcheck input{width:auto;accent-color:var(--amber)}
+.vcheck{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:4px 12px;cursor:pointer;font-size:14px;color:var(--text);min-height:42px}
+.vcheck input{width:auto;accent-color:var(--amber);margin:0}
 .filters>.vcheck,.filters>.dropdown,.filters>.seg{align-self:center}
 .dropdown{position:relative}
 .drop-panel{position:absolute;top:calc(100% + 6px);left:0;z-index:20;background:var(--panel2);border:1px solid var(--line);
